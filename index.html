@@ -431,7 +431,7 @@ body {
                     else if (st_type == 4) to_accumulate = 32
                     else if (st_type == 5) to_accumulate = 64
                     else if (st_type == 6) {
-                        to_accumulate = 16 /* this could be higher, we will know when we get the first byte */
+                        to_accumulate = -1 /* special value because we need the next byte to know how big 16 or 96 */
                         non_xrp_amount = 0
                     }
                     else if (st_type == 7) {
@@ -486,9 +486,12 @@ body {
                 if (state == 51) {
 
                     hexaccum += inp[i]
-                    if (st_type == 6 && to_accumulate == 16 && (nibble & 8)) {
+                    if (st_type == 6 && to_accumulate == -1 && (nibble & 8)) {
                         to_accumulate = 96 // non-xrp currency
                         non_xrp_amount = 1
+                    } else if (st_type == 6 && to_accumulate == -1 && (nibble & 8) == 0) {
+                        to_accumulate = 16 // xrp currency
+                        non_xrp_amount = 0
                     } else if (st_type == 8 && to_accumulate == 41) {
                         // accumulate the 2 VL nibbles at the start of the account field
                         print_explain(hexaccum, "account vl prefix", out)
