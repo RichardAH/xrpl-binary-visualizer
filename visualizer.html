@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<!--
+XRPL serialized object format visualizer
+Author: Richard Holland
+Date: 6 October 2020
+-->
+<html>
+    <head>
+        <title>XRPL Binary Visualizer</title>
+
+<style>
+body {
+    margin: 0;
+    padding: 0;
+}
+.tainput {
+    width: calc(100vw - 2em);
+    height: 20vh;
+    margin: 1em;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1px solid #9C27B0;
+    padding: 1em;
+}
+.output {
+    background: hsl(0 0% 98% / 1);
+    margin: 0em .8em 0.8em .8em;
+    padding: 1em;
+    border: 1px solid #2196F3;
+    border-radius: 5px;
+    font-family: monospace;
+}
+
+.payloadhex.right {
+    color: rgb(224 5 5);
+}
+
+.left {
+    margin-right: 1em;
+    border-right: 1px solid black;
+    padding-right: 1em;
+    font: small-caption;
+    font-size: small;
+    text-align: right;
+    max-width: 20em;
+    color: #673AB7;
+    font-family: monospace;
+    display: inline-block;
+    width: 20em;
+}
+
+.right:before {
+    content: "0x";
+    font-weight: normal;
+    color: #9e9e9e5e;
+    margin-right: 0.1em;
+}
+.right {
+    display: inline-block;
+    text-align: left;
+    font-family: monospace;
+    font-weight: bold;
+    color: hsl(227deg 100% 46%);
+    vertical-align: top;
+    text-indent: -1.3em;
+    padding-left: 1.3em;
+    word-break: break-word;
+    width: calc(100vw - 35em);
+}
+.fieldtext:before {
+    content: "Field-code";
+    font-size: smaller;
+    margin-right: 2em;
+    color: orange;
+    position: absolute;
+    left: 2em;
+}
+.typetext:before {
+    content: "Type-code";
+    font-size: smaller;
+    margin-right: 2em;
+    color: orange;
+    position: absolute;
+    left: 2em;
+}
+.payloadtext:before {
+    content: "Field-contents";
+    font-size: smaller;
+    margin-right: 2em;
+    color: orange;
+    position: absolute;
+    left: 2em;
+}
+        .invalid {
+
+        }
+
+        .type {
+
+
+        }
+
+        .field {
+
+
+        }
+
+        .explain {
+
+        }
+
+        .payload {
+
+        }
+
+</style>
+    <script>
+
+        var indent_level = 0
+
+        function print_error(c, out) {
+            out.innerHTML += "<br/><div class='invalid left'>Invalid character</div><div class='invalid right'>" + 
+                c + "</div>"; 
+        }
+
+        function print_type(t, h, out) {
+            var s = 'STI_UNKNOWN'
+            if (t == -1) s="STI_DONE"
+            else if (t == 0) s="STI_NOTPRESENT"
+            else if (t == 1) s="STI_UINT16"
+            else if (t == 2) s="STI_UINT32"
+            else if (t == 3) s="STI_UINT64"
+            else if (t == 4) s="STI_HASH128"
+            else if (t == 5) s="STI_HASH256"
+            else if (t == 6) s="STI_AMOUNT"
+            else if (t == 7) s="STI_VL"
+            else if (t == 8) s="STI_ACCOUNT"
+            else if (t == 14) s="STI_OBJECT"
+            else if (t == 15) s="STI_ARRAY"
+            else if (t == 16) s="STI_UINT8"
+            else if (t == 17) s="STI_HASH160"
+            else if (t == 18) s="STI_PATHSET"
+            else if (t == 19) s="STI_VECTOR256"
+            else if (t == 10001) s="STI_TRANSACTION"
+            else if (t == 10002) s="STI_LEDGERENTRY"
+            else if (t == 10003) s="STI_VALIDATION"
+            else if (t == 10004) s="STI_METADATA"
+            out.innerHTML += "<br/><div style='margin-left: "+indent_level+"em' class='type'><div class='typetext left'><b>" + s 
+                + "</b></div><div class='typehex right'>" + h + "</div></div>"
+        }
+
+        function print_field(t, fc, h, out) {
+
+            var s = "[[UNKNOWN_FIELD]]"
+            if (t == 1) {
+                if (fc == 1) s="LedgerEntryType"
+                else if (fc == 2) s="TransactionType"
+                else if (fc == 3) s="SignerWeight"
+                else if (fc == 16) s="Version"
+            } else if (t == 2) {
+                if (fc == 1) s="TransactionType"
+                else if (fc == 2) s="Flags"
+                else if (fc == 3) s="SourceTag"
+                else if (fc == 4) s="Sequence"
+                else if (fc == 5) s="PreviousTxnLgrSeq"
+                else if (fc == 6) s="LedgerSequence"
+                else if (fc == 7) s="CloseTime"
+                else if (fc == 8) s="ParentCloseTime"
+                else if (fc == 9) s="SigningTime"
+                else if (fc == 10) s="Expiration"
+                else if (fc == 11) s="TransferRate"
+                else if (fc == 12) s="WalletSize"
+                else if (fc == 13) s="OwnerCount"
+                else if (fc == 14) s="DestinationTag"
+                else if (fc == 16) s="HighQualityIn"
+                else if (fc == 17) s="HighQualityOut"
+                else if (fc == 18) s="LowQualityIn"
+                else if (fc == 19) s="LowQualityOut"
+                else if (fc == 20) s="QualityIn"
+                else if (fc == 21) s="QualityOut"
+                else if (fc == 22) s="StampEscrow"
+                else if (fc == 23) s="BondAmount"
+                else if (fc == 24) s="LoadFee"
+                else if (fc == 25) s="OfferSequence"
+                else if (fc == 26) s="FirstLedgerSequence"
+                else if (fc == 27) s="LastLedgerSequence"
+                else if (fc == 28) s="TransactionIndex"
+                else if (fc == 29) s="OperationLimit"
+                else if (fc == 30) s="ReferenceFeeUnits"
+                else if (fc == 31) s="ReserveBase"
+                else if (fc == 32) s="ReserveIncrement"
+                else if (fc == 33) s="SetFlag"
+                else if (fc == 34) s="ClearFlag"
+                else if (fc == 35) s="SignerQuorum"
+                else if (fc == 36) s="CancelAfter"
+                else if (fc == 37) s="FinishAfter"
+                else if (fc == 38) s="SignerListID"
+                else if (fc == 39) s="SettleDelay"
+                else if (fc == 40) s="HookStateCount"
+                else if (fc == 41) s="HookReserveCount"
+                else if (fc == 42) s="HookDataMaxSize"
+                else if (fc == 43) s="PseudoGeneration"                
+            } else if ( t == 3 ) {
+                if (fc == 1) s="IndexNext"
+                else if (fc == 2) s="IndexPrevious"
+                else if (fc == 3) s="BookNode"
+                else if (fc == 4) s="OwnerNode"
+                else if (fc == 5) s="BaseFee"
+                else if (fc == 6) s="ExchangeRate"
+                else if (fc == 7) s="LowNode"
+                else if (fc == 8) s="HighNode"
+                else if (fc == 9) s="DestinationNode"
+                else if (fc == 10) s="Cookie"
+                else if (fc == 11) s="ServerVersion"
+                else if (fc == 12) s="PseudoBurden"
+                else if (fc == 16) s="HookOn"
+            } else if ( t == 4 ) {
+                if (fc == 1) s="EmailHash"
+            } else if ( t == 5 ) {
+                if (fc == 1) s="LedgerHash"
+                else if (fc == 2) s="ParentHash"
+                else if (fc == 3) s="TransactionHash"
+                else if (fc == 4) s="AccountHash"
+                else if (fc == 5) s="PreviousTxnID"
+                else if (fc == 6) s="LedgerIndex"
+                else if (fc == 7) s="WalletLocator"
+                else if (fc == 8) s="RootIndex"
+                else if (fc == 9) s="AccountTxnID"
+                else if (fc == 10) s="PseudoParentTxnID"
+                else if (fc == 11) s="PseudoNonce"
+                else if (fc == 16) s="BookDirectory"
+                else if (fc == 17) s="InvoiceID"
+                else if (fc == 18) s="Nickname"
+                else if (fc == 19) s="Amendment"
+                else if (fc == 20) s="TicketID"
+                else if (fc == 21) s="Digest"
+                else if (fc == 22) s="Channel"
+                else if (fc == 23) s="ConsensusHash"
+                else if (fc == 24) s="CheckID"
+                else if (fc == 25) s="ValidatedHash"
+                else if (fc == 257) s="hash"
+                else if (fc == 258) s="index"
+            } else if ( t == 6 ) {
+                if (fc == 1) s="Amount"
+                else if (fc == 2) s="Balance"
+                else if (fc == 3) s="LimitAmount"
+                else if (fc == 4) s="TakerPays"
+                else if (fc == 5) s="TakerGets"
+                else if (fc == 6) s="LowLimit"
+                else if (fc == 7) s="HighLimit"
+                else if (fc == 8) s="Fee"
+                else if (fc == 9) s="SendMax"
+                else if (fc == 10) s="DeliverMin"
+                else if (fc == 16) s="MinimumOffer"
+                else if (fc == 17) s="RippleEscrow"
+                else if (fc == 18) s="DeliveredAmount"
+            } else if ( t == 7 ) {
+                if (fc == 1) s="PublicKey"
+                else if (fc == 2) s="MessageKey"
+                else if (fc == 3) s="SigningPubKey"
+                else if (fc == 4) s="TxnSignature"
+                else if (fc == 6) s="Signature"
+                else if (fc == 7) s="Domain"
+                else if (fc == 8) s="FundCode"
+                else if (fc == 9) s="RemoveCode"
+                else if (fc == 10) s="ExpireCode"
+                else if (fc == 11) s="CreateCode"
+                else if (fc == 12) s="MemoType"
+                else if (fc == 13) s="MemoData"
+                else if (fc == 14) s="MemoFormat"
+                else if (fc == 16) s="Fulfillment"
+                else if (fc == 17) s="Condition"
+                else if (fc == 18) s="MasterSignature"
+                else if (fc == 19) s="UNLModifyValidator"
+                else if (fc == 20) s="ValidatorToDisable"
+                else if (fc == 21) s="ValidatorToReEnable"
+                else if (fc == 22) s="HookData"
+            } else if ( t == 8 ) {
+                if (fc == 1) s="Account"
+                else if (fc == 2) s="Owner"
+                else if (fc == 3) s="Destination"
+                else if (fc == 4) s="Issuer"
+                else if (fc == 5) s="Authorize"
+                else if (fc == 6) s="Unauthorize"
+                else if (fc == 7) s="Target"
+                else if (fc == 8) s="RegularKey"
+                else if (fc == 9) s="PseudoCallback"
+            } else if ( t == 14 ) { /*STI_OBJECT*/
+                if (fc == 1) s="End of Object"
+                else if (fc == 2) s="TransactionMetaData"
+                else if (fc == 3) s="CreatedNode"
+                else if (fc == 4) s="DeletedNode"
+                else if (fc == 5) s="ModifiedNode"
+                else if (fc == 6) s="PreviousFields"
+                else if (fc == 7) s="FinalFields"
+                else if (fc == 8) s="NewFields"
+                else if (fc == 9) s="TemplateEntry"
+                else if (fc == 10) s="Memo"
+                else if (fc == 11) s="SignerEntry"
+                else if (fc == 12) s="PseudoDetails"
+                else if (fc == 16) s="Signer"
+                else if (fc == 18) s="Majority"
+                else if (fc == 19) s="DisabledValidator"                
+            } else if ( t == 15 ) { /*STI_ARRAY*/
+                    if (fc == 1) s="End of Array"
+                else if (fc == 3) s="Signers"
+                else if (fc == 4) s="SignerEntries"
+                else if (fc == 5) s="Template"
+                else if (fc == 6) s="Necessary"
+                else if (fc == 7) s="Sufficient"
+                else if (fc == 8) s="AffectedNodes"
+                else if (fc == 9) s="Memos"
+                else if (fc == 16) s="Majorities"
+                else if (fc == 17) s="NegativeUNL"                    
+            } else if ( t == 16 ) { //STI_UINT8
+                if (fc == 1) s="CloseResolution"
+                else if (fc == 2) s="Method"
+                else if (fc == 3) s="TransactionResult"
+                else if (fc == 16) s="TickSize"
+                else if (fc == 17) s="UNLModifyDisabling"
+            } else if ( t == 17 ) { //STI_HASH160
+                if (fc == 1) s="TakerPaysCurrency"
+                else if (fc == 2) s="TakerPaysIssuer"
+                else if (fc == 3) s="TakerGetsCurrency"
+                else if (fc == 4) s="TakerGetsIssuer"
+            } else if ( t == 18 ) { //STI_PATHSET
+                if (fc == 1) s="Paths"
+            } else if ( t == 19 ) { //STI_VECTOR256
+                if (fc == 1) s="Indexes"
+                else if (fc == 2) s="Hashes"
+                else if (fc == 3) s="Amendments"
+            } else if ( t == 10001 ) { //STI_TRANSACTION
+                if (fc == 257) s="Transaction"
+            } else if ( t == 10002 ) { //STI_LEDGERENTRY
+                if (fc == 257) s="LedgerEntry"
+            } else if ( t == 10003 ) { //STI_VALIDATION
+                if (fc == 257) s="Validation"
+            } else if ( t == 10004 ) { //STI_METADATA
+                if (fc == 257) s="Metadata"
+            }
+            out.innerHTML += "<br/><div style='margin-left: "+indent_level+"em' class='field'><div class='fieldtext left'><b>" + s +
+                "</b></div><div class='fieldhex right'>" + h + "</div></div>"
+        }
+        
+        function print_explain(h, msg, out, nnl) {
+            out.innerHTML += (typeof(nnl) == "undefined" ? "" : "<br/>") + 
+                "<div class='explain' style='margin-left: "+indent_level+"em'><div class='explaintext left'>" + msg + "</div>" +
+                "<div class='explainhex right'>" + h + "</div></div>";
+        }
+
+        function print_payload(t, f, h, msg, out) {
+
+            out.innerHTML +=  "<br/>" + 
+                "<div class='payload' style='margin-left: "+indent_level+"em'><div class='payloadtext left'>" + msg + "</div>" +
+                "<div class='payloadhex right'>" + h + "</div></div>";
+
+        }
+
+        function run() {
+            const out = document.getElementsByClassName("output")[0]
+            out.innerHTML = ""
+
+            const inp = document.getElementsByTagName("textarea")[0].value
+            var state = 0;
+            var to_accumulate = 0;
+
+            var hexaccum = "";
+
+            var lastnibble = 0;
+        
+            var st_type = 0;
+            var st_field = 0;
+
+            var field_hex = "";
+
+            var array_depth = 0
+            var object_depth = 0
+
+            var non_xrp_amount = 0;
+
+            for (var i = 0; i < inp.length; ++i) {
+
+                var nibble = 0;
+                var ascii = inp.charCodeAt(i);
+                if (ascii >= 48 && ascii <= 57) { // 0-9
+                    nibble = ascii - 48    
+                } else if (ascii >= 65 && ascii <= 70) { // A-F
+                    nibble = ascii - 65 + 10
+                } else if (ascii >= 97 && ascii <= 102) { // a-f
+                    nibble = ascii - 97 + 10
+                } else if (ascii == 32 || ascii == 9 || ascii == 10 || ascii == 13) {
+                    // whitepsace, skip
+                    continue
+                } else {
+                    print_error(inp[i], out)
+                    break;
+                }
+                
+                if (state == 5) {
+
+                    // now we process VL if any and print the field contents
+/*
+            var s = 'STI_UNKNOWN'
+            if (t == -1) s="STI_DONE"
+            else if (t == 0) s="STI_NOTPRESENT"
+            else if (t == 1) s="STI_UINT16"
+            else if (t == 2) s="STI_UINT32"
+            else if (t == 3) s="STI_UINT64"
+            else if (t == 4) s="STI_HASH128"
+            else if (t == 5) s="STI_HASH256"
+            else if (t == 6) s="STI_AMOUNT"
+            else if (t == 7) s="STI_VL"
+            else if (t == 8) s="STI_ACCOUNT"
+            else if (t == 14) s="STI_OBJECT"
+            else if (t == 15) s="STI_ARRAY"
+            else if (t == 16) s="STI_UINT8"
+            else if (t == 17) s="STI_HASH160"
+            else if (t == 18) s="STI_PATHSET"
+            else if (t == 19) s="STI_VECTOR256"
+            else if (t == 10001) s="STI_TRANSACTION"
+            else if (t == 10002) s="STI_LEDGERENTRY"
+            else if (t == 10003) s="STI_VALIDATION"
+            else if (t == 10004) s="STI_METADATA"
+*/
+                    hexaccum = ""
+                    --i
+
+                    if (st_type == 1) to_accumulate = 4
+                    else if (st_type == 2) to_accumulate = 8
+                    else if (st_type == 3) to_accumulate = 16
+                    else if (st_type == 4) to_accumulate = 32
+                    else if (st_type == 5) to_accumulate = 64
+                    else if (st_type == 6) {
+                        to_accumulate = 16 /* this could be higher, we will know when we get the first byte */
+                        non_xrp_amount = 0
+                    }
+                    else if (st_type == 7) {
+                        state = 70
+                        continue
+                    }
+                    else if (st_type == 8) to_accumulate = 42 
+                    else if (st_type == 14) {
+                        if (st_field == 1) {
+                                 object_depth-- // end of object
+                                 indent_level -= 2
+                        } else {
+                                 object_depth++
+                                 indent_level += 2
+                        }
+                        state = 0
+                        continue
+                    }
+                    else if (st_type == 15) {
+                        if (st_field == 1) {
+                                 array_depth-- // end of array
+                                 indent_level -= 2
+                        } else {
+                                 array_depth++
+                                 indent_level += 2
+                        }
+                        state = 0
+                        continue
+                    }
+                    else if (st_type == 16) to_accumulate = 2
+                    else if (st_type == 17) to_accumulate = 40
+                    else if (st_type == 18) {
+                        state = 180
+                        continue
+                    }
+                    else if (st_type == 19) {
+                        state = 190
+                        continue
+                    }
+                    else {
+                        print_error(inp[i], "not sure how to proceed with this type")
+                        break
+                    }
+                    
+
+                    state = 51
+                    continue
+                }
+
+
+
+                if (state == 51) {
+
+                    hexaccum += inp[i]
+                    if (st_type == 6 && to_accumulate == 16 && (nibble & 8)) {
+                        to_accumulate = 96 // non-xrp currency
+                        non_xrp_amount = 1
+                    } else if (st_type == 8 && to_accumulate == 41) {
+                        // accumulate the 2 VL nibbles at the start of the account field
+                        print_explain(hexaccum, "account vl prefix", out)
+                        hexaccum = ""
+                    }
+
+                    to_accumulate--
+                    console.log("to accumulate: " + to_accumulate)
+                    if (to_accumulate == 0) {
+                        print_payload(st_type, st_field, hexaccum, "&nbsp;", out)
+                        state = 0
+                    }
+                    continue
+                }
+
+                if (state == 70) { // parsing a VL field
+                    hexaccum = inp[i]
+                    lastnibble = nibble
+                    state = 71
+                    continue
+                }
+
+                if (state == 71) {
+                    hexaccum += inp[i]
+                    var b = (lastnibble << 4) + nibble
+                    if (b <= 192) {
+                        to_accumulate = b*2
+                        print_explain(hexaccum, "1 byte length " + b, out)
+                        hexaccum = ""
+                        state = 51
+                        continue
+                    } else if (b >= 193 && b <= 240) {
+                        to_accumulate = ((b - 193)*256) + 193
+                        state = 72
+                        continue
+                    } else {
+                        to_accumulate = 12481 + ((b - 241) * 65536)
+                        state = 74
+                        continue
+                    }
+                }
+
+                if (state == 72) {
+                    hexaccum += inp[i]
+                    lastnibble = nibble
+                    state = 73
+                    continue
+                }
+                if (state == 73) {
+                    hexaccum += inp[i]
+                    var b = (lastnibble << 4) + nibble
+                    to_accumulate += b
+                    print_explain(hexaccum, "2 byte length " + to_accumulate , out)
+                    to_accumulate *= 2
+                    hexaccum = ""
+                    state = 51
+                    continue
+                }
+
+                if (state == 74) {
+                    hexaccum += inp[i]
+                    lastnibble = nibble
+                    state = 75
+                    continue
+                }
+                if (state == 75) {
+                    hexaccum += inp[i]
+                    var b = (lastnibble << 4) + nibble
+                    to_accumulate += b * 256
+                    state = 76
+                    continue
+                }
+
+                if (state == 76) {
+                    hexaccum += inp[i]
+                    lastnibble = nibble
+                    state = 77
+                    continue
+                }
+                if (state == 77) {
+                    hexaccum += inp[i]
+                    var b = (lastnibble << 4) + nibble
+                    to_accumulate += b
+                    print_explain(hexaccum, "3 byte length " + to_accumulate, out)
+                    to_accumulate *= 2
+                    hexaccum = ""
+                    state = 51
+                    continue
+                }
+
+           
+                if (state == 0) { // parsing type
+                    if (nibble == 0) {
+                        print_explain(inp[i], "type uncommon", out)
+                        state = 1
+                        continue
+                    }
+                    
+                    st_type = nibble // this is the case where it's a one nibble type
+                    print_type(st_type, inp[i], out)
+                    state = 4 // expect 4 bit field code
+                    continue
+                }
+
+                if (state == 4) {
+                    if (nibble == 0) {
+                        print_explain(inp[i], "field uncommon", out)
+                        state = 6
+                        continue
+                    }
+
+                    st_field = nibble
+                    print_field(st_type, nibble, inp[i], out)
+                    state = 5
+                    continue
+                }
+               
+                if (state == 6) {
+                    lastnibble = nibble; // store the high nibble of fieldcode
+                    hexaccum = inp[i];
+                    state = 61;
+                    continue;
+                }
+
+                if (state == 61) {
+                    hexaccum += inp[i];
+                    st_field = (lastnibble << 4) + nibble
+                    print_field(st_type, st_field, hexaccum, out);
+                    state = 5; // both type code (4 bits) and field code (8 bits) parsed
+                    continue;
+                }
+
+
+
+                if (state == 1) { // parsing type with first nibble = 0
+                    if (nibble == 0) {
+                        print_explain(inp[1], "both type and field uncommon", out)
+                        state = 2 // expect 8 bit typecode next followed by 8 bit field code
+                        continue
+                    }
+
+                    st_field = nibble // we cant print until we parse type
+                    field_hex = inp[i];
+
+                    state = 3 // except 8 bit typecode next, we still need to print field
+                    continue
+                }
+
+                if (state == 3) { // expect 8 bit typecode
+                    lastnibble = nibble; // store the high nibble of typecode
+                    hexaccum = inp[i];
+                    state = 31;
+                    continue;
+                }
+
+                if (state == 31) {
+                    hexaccum += inp[i];
+                    st_type = (lastnibble << 4) + nibble
+                    // we still need to print the field because it came first but we didnt know it until we had type
+                    print_field(st_type, st_field, field_hex, out);
+                    print_type(st_type, hexaccum, out);
+                    state = 5; // both field code (4 bits) and type code (8 bits) parsed
+                    continue;
+                }
+
+                if (state == 2) { // expect 8 bit typecode followed by 8 bit field code
+                    lastnibble = nibble; // store the high nibble of typecode
+                    hexaccum = inp[i];
+                    state = 21;
+                    continue;
+                }
+
+                if (state == 21) {
+                    hexaccum += inp[i];
+                    st_type = (lastnibble << 4) + nibble
+                    print_type(st_type, hexaccum, out);
+                    state = 22; // expect 8 bit field code
+                    continue;
+                }
+
+                if (state == 22) {
+                    lastnibble = nibble;
+                    hexaccum = inp[i];
+                    state = 23;
+                    continue;
+                }
+
+                if (state == 23) {
+                    hexaccum += inp[i];
+                    st_field = (lastnibble << 4) + nibble;
+                    print_field(st_type, st_field, hexaccum, out);
+                    state = 5; // type and field read
+                    continue;
+                }
+
+                print_error("?", "unknown parsing state maybe something wasn't implemented yet?", out)
+                break
+            }
+        }
+    </script>
+    </head>
+    <body>
+        <textarea onchange="run()" rows="5" class="tainput" placeholder="Paste your Rippled/XRPL related HEX or Base64 blob or JSON here and a decode will be attempted in your browser."></textarea>
+    <div class="output">
+    </div>
+    </body>
+</html>
