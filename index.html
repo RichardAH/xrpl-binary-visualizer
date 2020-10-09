@@ -13,6 +13,34 @@ body {
     margin: 0;
     padding: 0;
 }
+
+div#errormsg {
+    margin: 0em .8em 0.8em .8em;
+    padding: 1em;        
+    border-radius: 5px;
+    border: 1px solid red;
+    display: none;
+    color: #b72c00;
+    font-weight:bold;
+    font-family: monospace;
+    padding-left: 1.4em;
+}
+
+
+.clickable:before {
+    content: "👉";
+    color: black;
+    cursor: pointer;
+}
+.clickable {
+    cursor: pointer;
+    background: rgb(3 169 244 / 15%);
+    margin: 0.3em;
+    line-height: 1.2em;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+}
+
 .tainput {
     width: calc(100vw - 2em);
     height: 20vh;
@@ -29,6 +57,7 @@ body {
     border: 1px solid #2196F3;
     border-radius: 5px;
     font-family: monospace;
+    overflow-wrap: break-word;
 }
 
 .payloadhex.right {
@@ -116,7 +145,11 @@ body {
 </style>
     <script>
 
+        var parse_stack = [] // when using objects inside objects this is used, by run_
+
         var indent_level = 0
+
+        var unknown_detected = false
 
         function print_error(c, out) {
             out.innerHTML += "<br/><div class='invalid left'>Invalid character</div><div class='invalid right'>" + 
@@ -145,6 +178,7 @@ body {
             else if (t == 10002) s="STI_LEDGERENTRY"
             else if (t == 10003) s="STI_VALIDATION"
             else if (t == 10004) s="STI_METADATA"
+            else unknown_detected = true
             out.innerHTML += "<br/><div style='margin-left: "+indent_level+"em' class='type'><div class='typetext left'><b>" + s 
                 + "</b></div><div class='typehex right'>" + h + "</div></div>"
         }
@@ -157,6 +191,7 @@ body {
                 else if (fc == 2) s="TransactionType"
                 else if (fc == 3) s="SignerWeight"
                 else if (fc == 16) s="Version"
+                else unknown_detected = true
             } else if (t == 2) {
                 if (fc == 1) s="TransactionType"
                 else if (fc == 2) s="Flags"
@@ -200,6 +235,7 @@ body {
                 else if (fc == 41) s="HookReserveCount"
                 else if (fc == 42) s="HookDataMaxSize"
                 else if (fc == 43) s="EmitGeneration"                
+                else unknown_detected = true
             } else if ( t == 3 ) {
                 if (fc == 1) s="IndexNext"
                 else if (fc == 2) s="IndexPrevious"
@@ -214,8 +250,10 @@ body {
                 else if (fc == 11) s="ServerVersion"
                 else if (fc == 12) s="EmitBurden"
                 else if (fc == 16) s="HookOn"
+                else unknown_detected = true
             } else if ( t == 4 ) {
                 if (fc == 1) s="EmailHash"
+                else unknown_detected = true
             } else if ( t == 5 ) {
                 if (fc == 1) s="LedgerHash"
                 else if (fc == 2) s="ParentHash"
@@ -240,6 +278,7 @@ body {
                 else if (fc == 25) s="ValidatedHash"
                 else if (fc == 257) s="hash"
                 else if (fc == 258) s="index"
+                else unknown_detected = true
             } else if ( t == 6 ) {
                 if (fc == 1) s="Amount"
                 else if (fc == 2) s="Balance"
@@ -254,6 +293,7 @@ body {
                 else if (fc == 16) s="MinimumOffer"
                 else if (fc == 17) s="RippleEscrow"
                 else if (fc == 18) s="DeliveredAmount"
+                else unknown_detected = true
             } else if ( t == 7 ) {
                 if (fc == 1) s="PublicKey"
                 else if (fc == 2) s="MessageKey"
@@ -275,6 +315,7 @@ body {
                 else if (fc == 20) s="ValidatorToDisable"
                 else if (fc == 21) s="ValidatorToReEnable"
                 else if (fc == 22) s="HookData"
+                else unknown_detected = true
             } else if ( t == 8 ) {
                 if (fc == 1) s="Account"
                 else if (fc == 2) s="Owner"
@@ -285,6 +326,7 @@ body {
                 else if (fc == 7) s="Target"
                 else if (fc == 8) s="RegularKey"
                 else if (fc == 9) s="EmitCallback"
+                else unknown_detected = true
             } else if ( t == 14 ) { /*STI_OBJECT*/
                 if (fc == 1) s="End of Object"
                 else if (fc == 2) s="TransactionMetaData"
@@ -301,6 +343,7 @@ body {
                 else if (fc == 16) s="Signer"
                 else if (fc == 18) s="Majority"
                 else if (fc == 19) s="DisabledValidator"                
+                else unknown_detected = true
             } else if ( t == 15 ) { /*STI_ARRAY*/
                     if (fc == 1) s="End of Array"
                 else if (fc == 3) s="Signers"
@@ -312,31 +355,40 @@ body {
                 else if (fc == 9) s="Memos"
                 else if (fc == 16) s="Majorities"
                 else if (fc == 17) s="NegativeUNL"                    
+                else unknown_detected = true
             } else if ( t == 16 ) { //STI_UINT8
                 if (fc == 1) s="CloseResolution"
                 else if (fc == 2) s="Method"
                 else if (fc == 3) s="TransactionResult"
                 else if (fc == 16) s="TickSize"
                 else if (fc == 17) s="UNLModifyDisabling"
+                else unknown_detected = true
             } else if ( t == 17 ) { //STI_HASH160
                 if (fc == 1) s="TakerPaysCurrency"
                 else if (fc == 2) s="TakerPaysIssuer"
                 else if (fc == 3) s="TakerGetsCurrency"
                 else if (fc == 4) s="TakerGetsIssuer"
+                else unknown_detected = true
             } else if ( t == 18 ) { //STI_PATHSET
                 if (fc == 1) s="Paths"
+                else unknown_detected = true
             } else if ( t == 19 ) { //STI_VECTOR256
                 if (fc == 1) s="Indexes"
                 else if (fc == 2) s="Hashes"
                 else if (fc == 3) s="Amendments"
+                else unknown_detected = true
             } else if ( t == 10001 ) { //STI_TRANSACTION
                 if (fc == 257) s="Transaction"
+                else unknown_detected = true
             } else if ( t == 10002 ) { //STI_LEDGERENTRY
                 if (fc == 257) s="LedgerEntry"
+                else unknown_detected = true
             } else if ( t == 10003 ) { //STI_VALIDATION
                 if (fc == 257) s="Validation"
+                else unknown_detected = true
             } else if ( t == 10004 ) { //STI_METADATA
                 if (fc == 257) s="Metadata"
+                else unknown_detected = true
             }
             out.innerHTML += "<br/><div style='margin-left: "+indent_level+"em' class='field'><div class='fieldtext left'><b>" + s +
                 "</b></div><div class='fieldhex right'>" + h + "</div></div>"
@@ -356,11 +408,217 @@ body {
 
         }
 
-        function run() {
+        function inpele()
+        {
+            return document.getElementsByTagName("textarea")[0]
+        }
+
+        function errorele()
+        {
+            return document.getElementById("errormsg")
+        }
+
+        // these functions help report errors to the user
+        function clear()
+        {
+            inpele().style.background = "white"
+            var m = make_up_link()
+            if (m == "")
+            {
+                errorele().innerHTML = ""
+                errorele().style.display = "none"
+            } else 
+            {
+                errorele().innerHTML = m
+                errorele().style.display = "block"
+                errorele().style.background = "#ffffff"
+                errorele().style.color = "#3F51B5"
+                errorele().style.border = "1px solid blue";
+            }
+        }
+
+        function good()
+        {
+            inpele().style.background = "#e0ffd7"
+            var m = make_up_link()
+            if (m == "")
+            {
+                errorele().innerHTML = ""
+                errorele().style.display = "none"
+            } else 
+            {
+                errorele().innerHTML = "Looks like a valid STObject. " + m
+                errorele().style.display = "block"
+                errorele().style.background = "#d7ffdc"
+                errorele().style.color = "#3F51B5"
+                errorele().style.border = "1px solid blue";
+            }
+
+        }
+
+        function bad(msg)
+        {
+            inpele().style.background = "#ffd7d7"
+            errorele().style.background = "#ffd7d7"
+            errorele().innerHTML = msg + make_up_link()
+            errorele().style.display = "block"
+            errorele().style.color = "#F44336"
+            errorele().style.border = "1px solid red";
+        }
+
+        function make_up_link()
+        {
+            return ( parse_stack.length > 0 ? "<a class='clickable' onclick='pop_()'>Go up</a>" : "" )
+        }
+
+        function info(msg) 
+        {
+            inpele().style.background = "#fafafa"
+            errorele().style.background = "#fafafa"
+            errorele().innerHTML = msg + make_up_link()
+            errorele().style.display = "block"
+            errorele().style.color = "#3F51B5"
+            errorele().style.border = "1px solid blue";
+        }
+
+        function ugly(msg)
+        {
+            inpele().style.background = "#ffecd7"
+            errorele().style.background = "#ffecd7"
+            errorele().innerHTML = msg + make_up_link()
+            errorele().style.display = "block"
+            errorele().style.color = "#F44336"
+            errorele().style.border = "1px solid red";
+        }
+
+        function run_(x)
+        {
+            parse_stack.push(inpele().value)
+            inpele().value = x
+            run(0, true)
+        }
+
+        function pop_()
+        {
+            if (parse_stack.length == 0) 
+            {
+                console.log("could not pop, no elements on stack")
+                return
+            }
+
+            const v = parse_stack[parse_stack.length-1]
+            parse_stack.pop()
+            inpele().value = v
+            run(0, true)
+        }
+
+        // convert the leaf values in a json object to links that populate the decoder
+        function convert_json_to_links(j)
+        {
+            Object.keys(j).forEach(function(key) {
+                var t = typeof(j[key])
+                if (t == "object")
+                    j[key] = convert_json_to_links(j[key])
+                else if (t == "string") 
+                {
+                    var inp = j[key].replace(/\s/gi, '')
+                    if (inp.match(/^[A-Fa-f0-9]+$/) || inp.match(/^[-A-Za-z0-9+/]*={0,3}$/))
+                        j[key] = '<a class=vvvv~clickablevvvv~ onclick=vvvv~run_(~vvvv' + inp + '~vvvv)vvvv~>' + j[key] + '</a>'
+                }
+            })
+
+            return j
+        }
+
+        function obj_to_html(j)
+        {
+            var t = JSON.stringify(j)
+            if (!t.match(/vvvv~/) && !t.match(/~vvvv/))
+            {
+                j = convert_json_to_links(j)
+                var s = JSON.stringify(j, null, 2)
+                s = s.replaceAll("vvvv~", "'").replaceAll("~vvvv", '"').replaceAll('\n', '<br/>')
+                s = s.replaceAll(/(<br\/> +)/g, (s, g)=>{ return g.replaceAll(' ', '&nbsp;'); }) 
+                return s 
+            } else
+            {
+                var s = JSON.stringify(j, null, 2)
+                s = s.replaceAll(/(<br\/> +)/g, (s, g)=>{ return g.replaceAll(' ', '&nbsp;'); }) 
+                return s 
+            }
+        }
+
+        function run(depth, dontclearstack) {
+            if (!dontclearstack) parse_stack = []
+
+
             const out = document.getElementsByClassName("output")[0]
             out.innerHTML = ""
 
-            const inp = document.getElementsByTagName("textarea")[0].value
+            indent_level = 0
+
+            var inp = inpele().value
+
+            // do an analysis to see if it's actually base64
+
+            if (inp == "") 
+                return clear()
+
+            const inp_nospace = inp.replace(/\s/gi, '')
+
+            if (inp_nospace[0] == '{')
+            {
+                // probably json
+                try {
+                    j = JSON.parse(inp)
+                    out.innerHTML = obj_to_html(j)
+                    return info("you entered json... click a field")
+
+                } catch (e) {
+                    console.log(e)
+                    // do nothing
+                }
+
+            }
+
+            if (!inp_nospace.match(/^[A-Fa-f0-9]+$/) && /* not hex */
+                inp_nospace.match(/^[-A-Za-z0-9+/]*={0,3}$/)) /* and is base64 */
+            {
+                if (depth > 0) {
+                    console.log("recusrive loop detected, stopping")
+                    return
+                }
+
+                // probably base64, convert to hex
+                const binstr = atob(inp.replace(/\s/gi, ''))
+                try {
+                    var j = JSON.parse(binstr)
+                    out.innerHTML = obj_to_html(j)
+                    return info("when decoding base64 we found it contained json... click a field")
+                } catch (e)
+                {
+                    console.log(e)
+
+                    inp = ""
+                    for (var i = 0; i < binstr.length; ++i) 
+                    {
+                        var hex = binstr.charCodeAt(i).toString(16)
+                        if (hex.length < 2) hex = "0" + hex
+                        inp += hex
+                    }
+
+                    document.getElementsByTagName("textarea")[0].value = inp
+                    return run(depth + 1, true)
+                }
+            }
+
+            if (!inp_nospace.match(/^[A-Fa-f0-9]+$/)) /* not hex */
+            {
+                return bad("input was not base64 or hex, we don't know what to do with it...")
+            }
+
+            unknown_detected = false
+
             var state = 0;
             var to_accumulate = 0;
 
@@ -378,7 +636,8 @@ body {
 
             var non_xrp_amount = 0;
 
-            for (var i = 0; i < inp.length; ++i) {
+            var i = 0
+            for (i = 0; i < inp.length; ++i) {
 
                 var nibble = 0;
                 var ascii = inp.charCodeAt(i);
@@ -499,7 +758,6 @@ body {
                     }
 
                     to_accumulate--
-                    console.log("to accumulate: " + to_accumulate)
                     if (to_accumulate == 0) {
                         print_payload(st_type, st_field, hexaccum, "&nbsp;", out)
                         state = 0
@@ -690,11 +948,31 @@ body {
                 print_error("?", "unknown parsing state maybe something wasn't implemented yet?", out)
                 break
             }
+
+            if (!unknown_detected && i == inp.length)
+                return good()
+
+            inp = inp_nospace.toUpperCase()
+            len = inp.length
+            if (len == 66 || len == 64 || 
+                len == 40)
+                return ugly("state machine did not complete cleanly " + 
+                (unknown_detected ? "and unknown fields were detected" : "" ) + "...<br/>by the way this " + 
+                    (inp[0] == 'E' && inp[1] == 'D' && len == 66 ? 
+                    "is definitely a public key not an STObject " : 
+                    ( len == 66 ? "might be a public key" :
+                    ( len == 40 ? "might be an accountid": "might be a hash" ))))
+            if (unknown_detected) 
+                return ugly("unknown fields detected " + 
+                ( i == inp.length ? "" : "and state machine did not end cleanly, ") + "probably not an STObject")
+
+            return ugly("state machine did not complete cleanly, if this is an STObject it is incomplete")
         }
     </script>
     </head>
     <body>
-        <textarea onchange="run()" rows="5" class="tainput" placeholder="Paste your Rippled/XRPL related HEX blob here then click outside the box to decode."></textarea>
+        <textarea onchange="run(0, false)" rows="5" class="tainput" placeholder="Paste your Rippled/XRPL related HEX blob here then click outside the box to decode."></textarea>
+        <div id="errormsg"></div>
     <div class="output">
     </div>
     </body>
