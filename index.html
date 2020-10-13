@@ -613,6 +613,8 @@ div#errormsg {
 
             unknown_detected = false
 
+            var negative_depth = false
+
             var state = 0;
             var to_accumulate = 0;
 
@@ -872,6 +874,7 @@ div#errormsg {
                         if (st_field == 1) {
                                  object_depth-- // end of object
                                  indent_level -= 2
+                                 if (object_depth < 0) negative_depth = true
                         } else {
                                  object_depth++
                                  indent_level += 2
@@ -883,6 +886,7 @@ div#errormsg {
                         if (st_field == 1) {
                                  array_depth-- // end of array
                                  indent_level -= 2
+                                 if (array_depth < 0) negative_depth = true
                         } else {
                                  array_depth++
                                  indent_level += 2
@@ -914,12 +918,15 @@ div#errormsg {
                 break
             }
 
-            if (!unknown_detected && i == inp.length && object_depth == 0 && array_depth == 0 && state == 0)
+            if (!unknown_detected && i == inp.length && 
+                object_depth == 0 && array_depth == 0 &&
+                state == 0 && !negative_depth)
                 return good()
 
             const indent_info = 
                 (object_depth != 0 ? " and one or more internal objects lacked a terminator" : "") +
-                (array_depth != 0 ? " and one or more internal arrays lacked a terminator" : "")
+                (array_depth != 0 ? " and one or more internal arrays lacked a terminator" : "") + 
+                (negative_depth ? " and one or more internal objects or arrays lacked a header" : "")
 
             inp = inp_nospace.toUpperCase()
             len = inp.length
