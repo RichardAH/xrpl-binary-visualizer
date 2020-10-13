@@ -32,9 +32,10 @@ div#errormsg {
     color: black;
     cursor: pointer;
 }
+
 .clickable {
     cursor: pointer;
-    background: rgb(3 169 244 / 15%);
+    background: rgb(43 3 244 / 9%);
     margin: 0.3em;
     line-height: 1.2em;
     padding-left: 0.2em;
@@ -565,7 +566,7 @@ div#errormsg {
                 try {
                     j = JSON.parse(inp)
                     out.innerHTML = obj_to_html(j)
-                    return info("you entered json... click a field")
+                    return info("You entered json... Click a field!")
 
                 } catch (e) {
                     console.log(e)
