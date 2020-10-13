@@ -441,18 +441,11 @@ div#errormsg {
         {
             inpele().style.background = "#e0ffd7"
             var m = make_up_link()
-            if (m == "")
-            {
-                errorele().innerHTML = ""
-                errorele().style.display = "none"
-            } else 
-            {
-                errorele().innerHTML = "Looks like a valid STObject. " + m
-                errorele().style.display = "block"
-                errorele().style.background = "#d7ffdc"
-                errorele().style.color = "#3F51B5"
-                errorele().style.border = "1px solid blue";
-            }
+            errorele().innerHTML = "Looks like a valid STObject. " + m
+            errorele().style.display = "block"
+            errorele().style.background = "#d7ffdc"
+            errorele().style.color = "#3F51B5"
+            errorele().style.border = "1px solid blue";
 
         }
 
@@ -594,7 +587,7 @@ div#errormsg {
                 try {
                     var j = JSON.parse(binstr)
                     out.innerHTML = obj_to_html(j)
-                    return info("when decoding base64 we found it contained json... click a field")
+                    return info("When decoding base64 I found it contained json... Click a field!")
                 } catch (e)
                 {
                     console.log(e)
@@ -614,7 +607,7 @@ div#errormsg {
 
             if (!inp_nospace.match(/^[A-Fa-f0-9]+$/)) /* not hex */
             {
-                return bad("input was not base64 or hex, we don't know what to do with it...")
+                return bad("Input was not base64 or hex, I don't know what to do with it...")
             }
 
             unknown_detected = false
@@ -655,92 +648,6 @@ div#errormsg {
                     break;
                 }
                 
-                if (state == 5) {
-
-                    // now we process VL if any and print the field contents
-/*
-            var s = 'STI_UNKNOWN'
-            if (t == -1) s="STI_DONE"
-            else if (t == 0) s="STI_NOTPRESENT"
-            else if (t == 1) s="STI_UINT16"
-            else if (t == 2) s="STI_UINT32"
-            else if (t == 3) s="STI_UINT64"
-            else if (t == 4) s="STI_HASH128"
-            else if (t == 5) s="STI_HASH256"
-            else if (t == 6) s="STI_AMOUNT"
-            else if (t == 7) s="STI_VL"
-            else if (t == 8) s="STI_ACCOUNT"
-            else if (t == 14) s="STI_OBJECT"
-            else if (t == 15) s="STI_ARRAY"
-            else if (t == 16) s="STI_UINT8"
-            else if (t == 17) s="STI_HASH160"
-            else if (t == 18) s="STI_PATHSET"
-            else if (t == 19) s="STI_VECTOR256"
-            else if (t == 10001) s="STI_TRANSACTION"
-            else if (t == 10002) s="STI_LEDGERENTRY"
-            else if (t == 10003) s="STI_VALIDATION"
-            else if (t == 10004) s="STI_METADATA"
-*/
-                    hexaccum = ""
-                    --i
-
-                    if (st_type == 1) to_accumulate = 4
-                    else if (st_type == 2) to_accumulate = 8
-                    else if (st_type == 3) to_accumulate = 16
-                    else if (st_type == 4) to_accumulate = 32
-                    else if (st_type == 5) to_accumulate = 64
-                    else if (st_type == 6) {
-                        to_accumulate = -1 /* special value because we need the next byte to know how big 16 or 96 */
-                        non_xrp_amount = 0
-                    }
-                    else if (st_type == 7) {
-                        state = 70
-                        continue
-                    }
-                    else if (st_type == 8) to_accumulate = 42 
-                    else if (st_type == 14) {
-                        if (st_field == 1) {
-                                 object_depth-- // end of object
-                                 indent_level -= 2
-                        } else {
-                                 object_depth++
-                                 indent_level += 2
-                        }
-                        state = 0
-                        continue
-                    }
-                    else if (st_type == 15) {
-                        if (st_field == 1) {
-                                 array_depth-- // end of array
-                                 indent_level -= 2
-                        } else {
-                                 array_depth++
-                                 indent_level += 2
-                        }
-                        state = 0
-                        continue
-                    }
-                    else if (st_type == 16) to_accumulate = 2
-                    else if (st_type == 17) to_accumulate = 40
-                    else if (st_type == 18) {
-                        state = 180
-                        continue
-                    }
-                    else if (st_type == 19) {
-                        state = 190
-                        continue
-                    }
-                    else {
-                        print_error(inp[i], "not sure how to proceed with this type")
-                        break
-                    }
-                    
-
-                    state = 51
-                    continue
-                }
-
-
 
                 if (state == 51) {
 
@@ -863,8 +770,7 @@ div#errormsg {
 
                     st_field = nibble
                     print_field(st_type, nibble, inp[i], out)
-                    state = 5
-                    continue
+                    state = 5 // state 5 is a fallthrough state so do not continue
                 }
                
                 if (state == 6) {
@@ -879,7 +785,6 @@ div#errormsg {
                     st_field = (lastnibble << 4) + nibble
                     print_field(st_type, st_field, hexaccum, out);
                     state = 5; // both type code (4 bits) and field code (8 bits) parsed
-                    continue;
                 }
 
 
@@ -912,7 +817,6 @@ div#errormsg {
                     print_field(st_type, st_field, field_hex, out);
                     print_type(st_type, hexaccum, out);
                     state = 5; // both field code (4 bits) and type code (8 bits) parsed
-                    continue;
                 }
 
                 if (state == 2) { // expect 8 bit typecode followed by 8 bit field code
@@ -942,31 +846,95 @@ div#errormsg {
                     st_field = (lastnibble << 4) + nibble;
                     print_field(st_type, st_field, hexaccum, out);
                     state = 5; // type and field read
-                    continue;
+                }
+                
+                if (state == 5) {
+
+                    // now we process VL if any and print the field contents
+                    hexaccum = ""
+
+                    if (st_type == 1) to_accumulate = 4
+                    else if (st_type == 2) to_accumulate = 8
+                    else if (st_type == 3) to_accumulate = 16
+                    else if (st_type == 4) to_accumulate = 32
+                    else if (st_type == 5) to_accumulate = 64
+                    else if (st_type == 6) {
+                        to_accumulate = -1 /* special value because we need the next byte to know how big 16 or 96 */
+                        non_xrp_amount = 0
+                    }
+                    else if (st_type == 7) {
+                        state = 70
+                        continue
+                    }
+                    else if (st_type == 8) to_accumulate = 42 
+                    else if (st_type == 14) {
+                        if (st_field == 1) {
+                                 object_depth-- // end of object
+                                 indent_level -= 2
+                        } else {
+                                 object_depth++
+                                 indent_level += 2
+                        }
+                        state = 0
+                        continue
+                    }
+                    else if (st_type == 15) {
+                        if (st_field == 1) {
+                                 array_depth-- // end of array
+                                 indent_level -= 2
+                        } else {
+                                 array_depth++
+                                 indent_level += 2
+                        }
+                        state = 0
+                        continue
+                    }
+                    else if (st_type == 16) to_accumulate = 2
+                    else if (st_type == 17) to_accumulate = 40
+                    else if (st_type == 18) {
+                        state = 180
+                        continue
+                    }
+                    else if (st_type == 19) {
+                        state = 190
+                        continue
+                    }
+                    else {
+                        print_error(inp[i], "not sure how to proceed with this type")
+                        break
+                    }
+                    
+
+                    state = 51
+                    continue
                 }
 
-                print_error("?", "unknown parsing state maybe something wasn't implemented yet?", out)
+                print_error("?", "Unknown parsing state maybe something wasn't implemented yet? Report this!", out)
                 break
             }
 
-            if (!unknown_detected && i == inp.length)
+            if (!unknown_detected && i == inp.length && object_depth == 0 && array_depth == 0 && state == 0)
                 return good()
+
+            const indent_info = 
+                (object_depth != 0 ? " and one or more internal objects lacked a terminator" : "") +
+                (array_depth != 0 ? " and one or more internal arrays lacked a terminator" : "")
 
             inp = inp_nospace.toUpperCase()
             len = inp.length
             if (len == 66 || len == 64 || 
                 len == 40)
-                return ugly("state machine did not complete cleanly " + 
-                (unknown_detected ? "and unknown fields were detected" : "" ) + "...<br/>by the way this " + 
+                return ugly("Parser did not complete cleanly" + indent_info +
+                (unknown_detected ? " and unknown fields were detected" : "" ) + " ...<br/>by the way this" + 
                     (inp[0] == 'E' && inp[1] == 'D' && len == 66 ? 
-                    "is definitely a public key not an STObject " : 
-                    ( len == 66 ? "might be a public key" :
-                    ( len == 40 ? "might be an accountid": "might be a hash" ))))
+                    " is definitely a public key not an STObject" : 
+                    ( len == 66 ? "might be a public key." :
+                    ( len == 40 ? "might be an AccountID.": "might be a hash." ))))
             if (unknown_detected) 
-                return ugly("unknown fields detected " + 
-                ( i == inp.length ? "" : "and state machine did not end cleanly, ") + "probably not an STObject")
+                return ugly("Unknown fields detected " + 
+                ( i == inp.length ? "" : "and parser did not end cleanly, ") + "probably not an STObject.")
 
-            return ugly("state machine did not complete cleanly, if this is an STObject it is incomplete")
+            return ugly("Parser did not complete cleanly" + indent_info + ", if this is an STObject it is incomplete.")
         }
     </script>
     </head>
