@@ -689,7 +689,10 @@ div#errormsg {
                         to_accumulate = b*2
                         print_explain(hexaccum, "1 byte length " + b, out)
                         hexaccum = ""
-                        state = 51
+                        if (to_accumulate == 0)
+                            state = 0;
+                        else
+                            state = 51;
                         continue
                     } else if (b >= 193 && b <= 240) {
                         to_accumulate = ((b - 193)*256) + 193
