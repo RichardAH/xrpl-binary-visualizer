@@ -237,8 +237,6 @@ div#errormsg {
                 else if (fc == 38) s="SignerListID"
                 else if (fc == 39) s="SettleDelay"
                 else if (fc == 40) s="HookStateCount"
-                else if (fc == 41) s="HookReserveCount"
-                else if (fc == 42) s="HookStateDataMaxSize"
                 else if (fc == 43) s="EmitGeneration"
                 else unknown_detected = true
             } else if ( t == 3 ) { //STI_UINT64
@@ -286,9 +284,9 @@ div#errormsg {
                 else if (fc == 24) s="CheckID"
                 else if (fc == 25) s="ValidatedHash"
                 else if (fc == 26) s="HookStateKey"
-                else if (fc == 27) s="HookCreationTxnID"
-                else if (fc == 28) s="HookHash"
-                else if (fc == 29) s="HookNamespace"
+                else if (fc == 27) s="HookHash"
+                else if (fc == 28) s="HookNamespace"
+                else if (fc == 29) s="HookSetTxnID"
                 else if (fc == 257) s="hash"
                 else if (fc == 258) s="index"
                 else unknown_detected = true
@@ -358,13 +356,14 @@ div#errormsg {
                 else if (fc == 10) s="Memo"
                 else if (fc == 11) s="SignerEntry"
                 else if (fc == 12) s="EmitDetails"
-                else if (fc == 13) s="HookSet"
+                else if (fc == 13) s="Hook"
                 else if (fc == 16) s="Signer"
                 else if (fc == 18) s="Majority"
                 else if (fc == 19) s="DisabledValidator"
                 else if (fc == 21) s="HookExecution"
                 else if (fc == 22) s="HookDefinition"
                 else if (fc == 23) s="HookParameter"
+                else if (fc == 24) s="HookGrant"
                 else unknown_detected = true
             } else if ( t == 15 ) { /*STI_ARRAY*/
                     if (fc == 1) s="End of Array"
@@ -375,11 +374,12 @@ div#errormsg {
                 else if (fc == 7) s="Sufficient"
                 else if (fc == 8) s="AffectedNodes"
                 else if (fc == 9) s="Memos"
-                else if (fc == 10) s="HookSets"
+                else if (fc == 10) s="Hooks"
                 else if (fc == 16) s="Majorities"
                 else if (fc == 17) s="NegativeUNL"
                 else if (fc == 18) s="HookExecutions"
                 else if (fc == 19) s="HookParameters"
+                else if (fc == 20) s="HookGrants"
                 else unknown_detected = true
             } else if ( t == 16 ) { //STI_UINT8
                 if (fc == 1) s="CloseResolution"
