@@ -657,6 +657,7 @@ div#errormsg {
             var to_accumulate = 0;
 
             var hexaccum = "";
+            var vec_counter = 0;
 
             var lastnibble = 0;
 
@@ -799,7 +800,7 @@ div#errormsg {
                         if (to_accumulate == 0)
                             state = 0;
                         else
-                            state = 51;
+                            state = (st_type == 19 ? 190 : 51);
                         continue
                     } else if (b >= 193 && b <= 240) {
                         to_accumulate = ((b - 193)*256) + 193
@@ -825,7 +826,7 @@ div#errormsg {
                     print_explain(hexaccum, "2 byte length " + to_accumulate , out)
                     to_accumulate *= 2
                     hexaccum = ""
-                    state = 51
+                    state = (st_type == 19 ? 190 : 51)
                     continue
                 }
 
@@ -856,7 +857,7 @@ div#errormsg {
                     print_explain(hexaccum, "3 byte length " + to_accumulate, out)
                     to_accumulate *= 2
                     hexaccum = ""
-                    state = 51
+                    state = (st_type == 19 ? 190 : 51)
                     continue
                 }
 
@@ -1012,7 +1013,7 @@ div#errormsg {
                         continue
                     }
                     else if (st_type == 19) {
-                        state = 190
+                        state = 70
                         continue
                     }
                     else {
@@ -1025,7 +1026,39 @@ div#errormsg {
                     continue
                 }
 
+                if (state == 190)
+                {
+                    // vector256
+                    if (to_accumulate == 0)
+                    {
+                        state = 0
+                        continue
+                    }
+                    hex_accum = ""
+                    state = 191
+                    vec_counter = 0
+                }
 
+                if (state == 191)
+                {
+                    if (to_accumulate % 64 == 0 && hex_accum != "")
+                    {
+                        print_payload("", "", hex_accum, "hash " + (vec_counter++), out);
+                        hex_accum = ""
+                    }
+                    to_accumulate--;
+                    hex_accum += inp[i]
+                    if (to_accumulate <= 0)
+                    {
+                        print_payload("", "", hex_accum, "hash " + (vec_counter++), out);
+                        hex_accum = ""
+                        vec_counter = 0
+                        state = 0
+                        continue
+                    }
+                    console.log(inp[i], to_accumulate)
+                    continue
+                }
 
                 if (state == 182)
                 {   // pathset accountid or currency or issuer
