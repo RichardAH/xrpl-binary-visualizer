@@ -706,6 +706,8 @@ div#errormsg {
                     } else if (st_type == 8 && to_accumulate == 41) {
                         // accumulate the 2 VL nibbles at the start of the account field
                         print_explain(hexaccum, "account vl prefix", out)
+                        if (hexaccum == '00')
+                            to_accumulate = 1;
                         hexaccum = ""
                         amount_type = -1
                     }
