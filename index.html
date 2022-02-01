@@ -175,6 +175,10 @@ div#errormsg {
             else if (t == 17) s="STI_HASH160"
             else if (t == 18) s="STI_PATHSET"
             else if (t == 19) s="STI_VECTOR256"
+            else if (t == 20) s="STI_UINT96"
+            else if (t == 21) s="STI_UINT192"
+            else if (t == 22) s="STI_UINT384"
+            else if (t == 23) s="STI_UINT512"
             else if (t == 10001) s="STI_TRANSACTION"
             else if (t == 10002) s="STI_LEDGERENTRY"
             else if (t == 10003) s="STI_VALIDATION"
@@ -187,10 +191,20 @@ div#errormsg {
         function print_field(t, fc, h, out) {
 
             var s = "[[UNKNOWN_FIELD]]"
-            if (t == 1) { //STI_UINT16
+            if ( t == 16 ) { //STI_UINT8
+                if (fc == 1) s="CloseResolution"
+                else if (fc == 2) s="Method"
+                else if (fc == 3) s="TransactionResult"
+                else if (fc == 4) s="HookSequence"
+                else if (fc == 16) s="TickSize"
+                else if (fc == 17) s="UNLModifyDisabling"
+                else if (fc == 18) s="HookResult"
+                else unknown_detected = true
+            } else if (t == 1) { //STI_UINT16
                 if (fc == 1) s="LedgerEntryType"
                 else if (fc == 2) s="TransactionType"
                 else if (fc == 3) s="SignerWeight"
+                else if (fc == 4) s="TransferFee"
                 else if (fc == 16) s="Version"
                 else if (fc == 17) s="HookStateChangeCount"
                 else if (fc == 18) s="HookEmitCount"
@@ -236,8 +250,13 @@ div#errormsg {
                 else if (fc == 37) s="FinishAfter"
                 else if (fc == 38) s="SignerListID"
                 else if (fc == 39) s="SettleDelay"
-                else if (fc == 40) s="HookStateCount"
-                else if (fc == 43) s="EmitGeneration"
+                else if (fc == 40) s="TicketCount"
+                else if (fc == 41) s="TicketSequence"
+                else if (fc == 42) s="TokenTaxon"
+                else if (fc == 43) s="MintedTokens"
+                else if (fc == 44) s="BurnedTokens"
+                else if (fc == 45) s="HookSateCount"
+                else if (fc == 46) s="EmitGeneration"
                 else unknown_detected = true
             } else if ( t == 3 ) { //STI_UINT64
                 if (fc == 1) s="IndexNext"
@@ -251,17 +270,17 @@ div#errormsg {
                 else if (fc == 9) s="DestinationNode"
                 else if (fc == 10) s="Cookie"
                 else if (fc == 11) s="ServerVersion"
-                else if (fc == 12) s="EmitBurden"
+                else if (fc == 12) s="OfferNode"
+                else if (fc == 13) s="EmitBurden"
                 else if (fc == 16) s="HookOn"
                 else if (fc == 17) s="HookInstructionCount"
                 else if (fc == 18) s="HookReturnCode"
                 else if (fc == 19) s="HookReferenceCount"
-                else if (fc == 20) s="HookReorder"
                 else unknown_detected = true
             } else if ( t == 4 ) {
                 if (fc == 1) s="EmailHash"
                 else unknown_detected = true
-            } else if ( t == 5 ) {
+            } else if ( t == 5 ) { // HASH256
                 if (fc == 1) s="LedgerHash"
                 else if (fc == 2) s="ParentHash"
                 else if (fc == 3) s="TransactionHash"
@@ -271,8 +290,10 @@ div#errormsg {
                 else if (fc == 7) s="WalletLocator"
                 else if (fc == 8) s="RootIndex"
                 else if (fc == 9) s="AccountTxnID"
-                else if (fc == 10) s="EmitParentTxnID"
-                else if (fc == 11) s="EmitNonce"
+                else if (fc == 10) s="TokenID"
+                else if (fc == 11) s="EmitParentTxnID"
+                else if (fc == 12) s="EmitNonce"
+                else if (fc == 13) s="EmitHookHash"
                 else if (fc == 16) s="BookDirectory"
                 else if (fc == 17) s="InvoiceID"
                 else if (fc == 18) s="Nickname"
@@ -283,14 +304,18 @@ div#errormsg {
                 else if (fc == 23) s="ConsensusHash"
                 else if (fc == 24) s="CheckID"
                 else if (fc == 25) s="ValidatedHash"
-                else if (fc == 26) s="HookStateKey"
-                else if (fc == 27) s="HookHash"
-                else if (fc == 28) s="HookNamespace"
-                else if (fc == 29) s="HookSetTxnID"
+                else if (fc == 26) s="PreviousPageMin"
+                else if (fc == 27) s="NextPageMin"
+                else if (fc == 28) s="BuyOffer"
+                else if (fc == 29) s="SellOffer"
+                else if (fc == 30) s="HookStateKey"
+                else if (fc == 31) s="HookHash"
+                else if (fc == 32) s="HookNamespace"
+                else if (fc == 33) s="HookSetTxnID"
                 else if (fc == 257) s="hash"
                 else if (fc == 258) s="index"
                 else unknown_detected = true
-            } else if ( t == 6 ) {
+            } else if ( t == 6 ) { // AMOUNT
                 if (fc == 1) s="Amount"
                 else if (fc == 2) s="Balance"
                 else if (fc == 3) s="LimitAmount"
@@ -304,12 +329,14 @@ div#errormsg {
                 else if (fc == 16) s="MinimumOffer"
                 else if (fc == 17) s="RippleEscrow"
                 else if (fc == 18) s="DeliveredAmount"
+                else if (fc == 19) s="BrokerFee"
                 else unknown_detected = true
-            } else if ( t == 7 ) {
+            } else if ( t == 7 ) { // BLOB
                 if (fc == 1) s="PublicKey"
                 else if (fc == 2) s="MessageKey"
                 else if (fc == 3) s="SigningPubKey"
                 else if (fc == 4) s="TxnSignature"
+                else if (fc == 5) s="URI"
                 else if (fc == 6) s="Signature"
                 else if (fc == 7) s="Domain"
                 else if (fc == 8) s="FundCode"
@@ -330,7 +357,7 @@ div#errormsg {
                 else if (fc == 24) s="HookParameterName"
                 else if (fc == 25) s="HookParameterValue"
                 else unknown_detected = true
-            } else if ( t == 8 ) {
+            } else if ( t == 8 ) { // ACCOUNT
                 if (fc == 1) s="Account"
                 else if (fc == 2) s="Owner"
                 else if (fc == 3) s="Destination"
@@ -339,9 +366,15 @@ div#errormsg {
                 else if (fc == 6) s="Unauthorize"
                 else if (fc == 7) s="Target"
                 else if (fc == 8) s="RegularKey"
-                else if (fc == 9) s="EmitCallback"
+                else if (fc == 9) s="Minter"
+                else if (fc == 10) s="EmitCallback"
                 else if (fc == 16) s="HookAccount"
-                else if (fc == 17) s="HookCreator"
+                else unknown_detected = true
+            } else if ( t == 19 ) { //STI_VECTOR256
+                if (fc == 1) s="Indexes"
+                else if (fc == 2) s="Hashes"
+                else if (fc == 3) s="Amendments"
+                else if (fc == 4) s="TokenOffers"
                 else unknown_detected = true
             } else if ( t == 14 ) { /*STI_OBJECT*/
                 if (fc == 1) s="End of Object"
@@ -355,11 +388,13 @@ div#errormsg {
                 else if (fc == 9) s="TemplateEntry"
                 else if (fc == 10) s="Memo"
                 else if (fc == 11) s="SignerEntry"
-                else if (fc == 12) s="EmitDetails"
-                else if (fc == 13) s="Hook"
+                else if (fc == 12) s="NonFungibleToken"
+                else if (fc == 13) s="EmitDetails"
+                else if (fc == 14) s="Hook"
                 else if (fc == 16) s="Signer"
                 else if (fc == 18) s="Majority"
                 else if (fc == 19) s="DisabledValidator"
+                else if (fc == 20) s="EmittedTxn"
                 else if (fc == 21) s="HookExecution"
                 else if (fc == 22) s="HookDefinition"
                 else if (fc == 23) s="HookParameter"
@@ -374,21 +409,13 @@ div#errormsg {
                 else if (fc == 7) s="Sufficient"
                 else if (fc == 8) s="AffectedNodes"
                 else if (fc == 9) s="Memos"
-                else if (fc == 10) s="Hooks"
+                else if (fc == 10) s="NonFungibleTokens"
+                else if (fc == 11) s="Hooks"
                 else if (fc == 16) s="Majorities"
-                else if (fc == 17) s="NegativeUNL"
+                else if (fc == 17) s="DisabledValidators"
                 else if (fc == 18) s="HookExecutions"
                 else if (fc == 19) s="HookParameters"
                 else if (fc == 20) s="HookGrants"
-                else unknown_detected = true
-            } else if ( t == 16 ) { //STI_UINT8
-                if (fc == 1) s="CloseResolution"
-                else if (fc == 2) s="Method"
-                else if (fc == 3) s="TransactionResult"
-                else if (fc == 4) s="HookSequence"
-                else if (fc == 16) s="TickSize"
-                else if (fc == 17) s="UNLModifyDisabling"
-                else if (fc == 18) s="HookResult"
                 else unknown_detected = true
             } else if ( t == 17 ) { //STI_HASH160
                 if (fc == 1) s="TakerPaysCurrency"
@@ -398,11 +425,6 @@ div#errormsg {
                 else unknown_detected = true
             } else if ( t == 18 ) { //STI_PATHSET
                 if (fc == 1) s="Paths"
-                else unknown_detected = true
-            } else if ( t == 19 ) { //STI_VECTOR256
-                if (fc == 1) s="Indexes"
-                else if (fc == 2) s="Hashes"
-                else if (fc == 3) s="Amendments"
                 else unknown_detected = true
             } else if ( t == 10001 ) { //STI_TRANSACTION
                 if (fc == 257) s="Transaction"
