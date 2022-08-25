@@ -196,7 +196,8 @@ div#errormsg {
                 defs = jsonResponse;
                 process_defs();
             }).catch(e=>{
-                return ugly("Could not load: " + strip(url) + '<br/>' + e);
+                console.log(e);
+                return ugly("Could not load: " + strip(url));
             });
         }
 
