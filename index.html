@@ -1026,7 +1026,7 @@ div#errormsg {
                     ( len == 40 ? "might be an AccountID.": "might be a hash." ))))
             if (unknown_detected)
                 return ugly("Unknown fields detected " +
-                ( i == inp.length ? "" : "and parser did not end cleanly, ") + "probably not an STObject.")
+                            ( i == inp.length ? "" : "and parser did not end cleanly, ") + "either not an STObject or wrong definitions.json. Try adding: ?url-to-your-definitions.json to the current URL")
 
             return ugly("Parser did not complete cleanly" + indent_info + ", if this is an STObject it is incomplete.")
         }
