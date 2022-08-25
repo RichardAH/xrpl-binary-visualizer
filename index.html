@@ -157,33 +157,70 @@ div#errormsg {
                 c + "</div>";
         }
 
+        let defs = false;
+        let type_lookup = {};
+
+        function process_defs()
+        {
+            for (let k in defs["FIELDS"])
+            {
+                const fe = defs["FIELDS"][k];
+                const fe_type = fe[1].type;
+                let fe_type_code = typeof(defs["TYPES"][fe_type]) == "undefined" ? -1 :
+                            defs["TYPES"][fe_type];
+                if (!(fe_type_code in type_lookup))
+                    type_lookup[fe_type_code] = {};
+
+                type_lookup[fe_type_code][fe[1].nth] = 
+                {
+                    name: fe[0],
+                    vl: fe[1].isVLEncoded,
+                    signing: fe[1].isSigningField
+                };
+            }
+        }
+
+        function strip(html)
+        {
+            let doc = new DOMParser().parseFromString(html, 'text/html');
+           return doc.body.textContent || "";
+        }
+
+        function getDefJson(url)
+        {
+            fetch(url === undefined || (''+url).trim() == '' ? 'def.json' : strip(url))
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(jsonResponse) {
+                defs = jsonResponse;
+                process_defs();
+            }).catch(e=>{
+                return ugly("Could not load: " + strip(url) + '<br/>' + e);
+            });
+        }
+
+        getDefJson(window.location.search.substr(1));
+
+
         function print_type(t, h, out) {
-            var s = 'STI_UNKNOWN'
-            if (t == -1) s="STI_DONE"
-            else if (t == 0) s="STI_NOTPRESENT"
-            else if (t == 1) s="STI_UINT16"
-            else if (t == 2) s="STI_UINT32"
-            else if (t == 3) s="STI_UINT64"
-            else if (t == 4) s="STI_HASH128"
-            else if (t == 5) s="STI_HASH256"
-            else if (t == 6) s="STI_AMOUNT"
-            else if (t == 7) s="STI_VL"
-            else if (t == 8) s="STI_ACCOUNT"
-            else if (t == 14) s="STI_OBJECT"
-            else if (t == 15) s="STI_ARRAY"
-            else if (t == 16) s="STI_UINT8"
-            else if (t == 17) s="STI_HASH160"
-            else if (t == 18) s="STI_PATHSET"
-            else if (t == 19) s="STI_VECTOR256"
-            else if (t == 20) s="STI_UINT96"
-            else if (t == 21) s="STI_UINT192"
-            else if (t == 22) s="STI_UINT384"
-            else if (t == 23) s="STI_UINT512"
-            else if (t == 10001) s="STI_TRANSACTION"
-            else if (t == 10002) s="STI_LEDGERENTRY"
-            else if (t == 10003) s="STI_VALIDATION"
-            else if (t == 10004) s="STI_METADATA"
-            else unknown_detected = true
+            
+            let s = "Unknown";
+            for (let k in defs["TYPES"])
+            if (defs["TYPES"][k] == t)
+            {
+                s = k;
+                break;
+            }
+
+            if (s == "Unknown")
+                unknown_detected = true;
+
+            s = s.replaceAll('Hash', 'UInt').toUpperCase();
+
+            if (s.substr(0,2) == "ST")
+                s = s.substr(2);
+
             out.innerHTML += "<br/><div style='margin-left: "+indent_level+"em' class='type'><div class='typetext left'><b>" + s
                 + "</b></div><div class='typehex right'>" + h + "</div></div>"
         }
@@ -191,254 +228,12 @@ div#errormsg {
         function print_field(t, fc, h, out) {
 
             var s = "[[UNKNOWN_FIELD]]"
-            if ( t == 16 ) { //STI_UINT8
-                if (fc == 1) s="CloseResolution"
-                else if (fc == 2) s="Method"
-                else if (fc == 3) s="TransactionResult"
-                else if (fc == 4) s="HookSequence"
-                else if (fc == 16) s="TickSize"
-                else if (fc == 17) s="UNLModifyDisabling"
-                else if (fc == 18) s="HookResult"
-                else unknown_detected = true
-            } else if (t == 1) { //STI_UINT16
-                if (fc == 1) s="LedgerEntryType"
-                else if (fc == 2) s="TransactionType"
-                else if (fc == 3) s="SignerWeight"
-                else if (fc == 4) s="TransferFee"
-                else if (fc == 16) s="Version"
-                else if (fc == 17) s="HookStateChangeCount"
-                else if (fc == 18) s="HookEmitCount"
-                else if (fc == 19) s="HookExecutionIndex"
-                else if (fc == 20) s="HookApiVersion"
-                else unknown_detected = true
-            } else if (t == 2) { //STI_UINT32
-                if (fc == 1) s="TransactionType"
-                else if (fc == 2) s="Flags"
-                else if (fc == 3) s="SourceTag"
-                else if (fc == 4) s="Sequence"
-                else if (fc == 5) s="PreviousTxnLgrSeq"
-                else if (fc == 6) s="LedgerSequence"
-                else if (fc == 7) s="CloseTime"
-                else if (fc == 8) s="ParentCloseTime"
-                else if (fc == 9) s="SigningTime"
-                else if (fc == 10) s="Expiration"
-                else if (fc == 11) s="TransferRate"
-                else if (fc == 12) s="WalletSize"
-                else if (fc == 13) s="OwnerCount"
-                else if (fc == 14) s="DestinationTag"
-                else if (fc == 16) s="HighQualityIn"
-                else if (fc == 17) s="HighQualityOut"
-                else if (fc == 18) s="LowQualityIn"
-                else if (fc == 19) s="LowQualityOut"
-                else if (fc == 20) s="QualityIn"
-                else if (fc == 21) s="QualityOut"
-                else if (fc == 22) s="StampEscrow"
-                else if (fc == 23) s="BondAmount"
-                else if (fc == 24) s="LoadFee"
-                else if (fc == 25) s="OfferSequence"
-                else if (fc == 26) s="FirstLedgerSequence"
-                else if (fc == 27) s="LastLedgerSequence"
-                else if (fc == 28) s="TransactionIndex"
-                else if (fc == 29) s="OperationLimit"
-                else if (fc == 30) s="ReferenceFeeUnits"
-                else if (fc == 31) s="ReserveBase"
-                else if (fc == 32) s="ReserveIncrement"
-                else if (fc == 33) s="SetFlag"
-                else if (fc == 34) s="ClearFlag"
-                else if (fc == 35) s="SignerQuorum"
-                else if (fc == 36) s="CancelAfter"
-                else if (fc == 37) s="FinishAfter"
-                else if (fc == 38) s="SignerListID"
-                else if (fc == 39) s="SettleDelay"
-                else if (fc == 40) s="TicketCount"
-                else if (fc == 41) s="TicketSequence"
-                else if (fc == 42) s="TokenTaxon"
-                else if (fc == 43) s="MintedTokens"
-                else if (fc == 44) s="BurnedTokens"
-                else if (fc == 45) s="HookSateCount"
-                else if (fc == 46) s="EmitGeneration"
-                else unknown_detected = true
-            } else if ( t == 3 ) { //STI_UINT64
-                if (fc == 1) s="IndexNext"
-                else if (fc == 2) s="IndexPrevious"
-                else if (fc == 3) s="BookNode"
-                else if (fc == 4) s="OwnerNode"
-                else if (fc == 5) s="BaseFee"
-                else if (fc == 6) s="ExchangeRate"
-                else if (fc == 7) s="LowNode"
-                else if (fc == 8) s="HighNode"
-                else if (fc == 9) s="DestinationNode"
-                else if (fc == 10) s="Cookie"
-                else if (fc == 11) s="ServerVersion"
-                else if (fc == 12) s="OfferNode"
-                else if (fc == 13) s="EmitBurden"
-                else if (fc == 16) s="HookOn"
-                else if (fc == 17) s="HookInstructionCount"
-                else if (fc == 18) s="HookReturnCode"
-                else if (fc == 19) s="HookReferenceCount"
-                else unknown_detected = true
-            } else if ( t == 4 ) {
-                if (fc == 1) s="EmailHash"
-                else unknown_detected = true
-            } else if ( t == 5 ) { // HASH256
-                if (fc == 1) s="LedgerHash"
-                else if (fc == 2) s="ParentHash"
-                else if (fc == 3) s="TransactionHash"
-                else if (fc == 4) s="AccountHash"
-                else if (fc == 5) s="PreviousTxnID"
-                else if (fc == 6) s="LedgerIndex"
-                else if (fc == 7) s="WalletLocator"
-                else if (fc == 8) s="RootIndex"
-                else if (fc == 9) s="AccountTxnID"
-                else if (fc == 10) s="TokenID"
-                else if (fc == 11) s="EmitParentTxnID"
-                else if (fc == 12) s="EmitNonce"
-                else if (fc == 13) s="EmitHookHash"
-                else if (fc == 16) s="BookDirectory"
-                else if (fc == 17) s="InvoiceID"
-                else if (fc == 18) s="Nickname"
-                else if (fc == 19) s="Amendment"
-                else if (fc == 20) s="TicketID"
-                else if (fc == 21) s="Digest"
-                else if (fc == 22) s="Channel"
-                else if (fc == 23) s="ConsensusHash"
-                else if (fc == 24) s="CheckID"
-                else if (fc == 25) s="ValidatedHash"
-                else if (fc == 26) s="PreviousPageMin"
-                else if (fc == 27) s="NextPageMin"
-                else if (fc == 28) s="BuyOffer"
-                else if (fc == 29) s="SellOffer"
-                else if (fc == 30) s="HookStateKey"
-                else if (fc == 31) s="HookHash"
-                else if (fc == 32) s="HookNamespace"
-                else if (fc == 33) s="HookSetTxnID"
-                else if (fc == 257) s="hash"
-                else if (fc == 258) s="index"
-                else unknown_detected = true
-            } else if ( t == 6 ) { // AMOUNT
-                if (fc == 1) s="Amount"
-                else if (fc == 2) s="Balance"
-                else if (fc == 3) s="LimitAmount"
-                else if (fc == 4) s="TakerPays"
-                else if (fc == 5) s="TakerGets"
-                else if (fc == 6) s="LowLimit"
-                else if (fc == 7) s="HighLimit"
-                else if (fc == 8) s="Fee"
-                else if (fc == 9) s="SendMax"
-                else if (fc == 10) s="DeliverMin"
-                else if (fc == 16) s="MinimumOffer"
-                else if (fc == 17) s="RippleEscrow"
-                else if (fc == 18) s="DeliveredAmount"
-                else if (fc == 19) s="BrokerFee"
-                else unknown_detected = true
-            } else if ( t == 7 ) { // BLOB
-                if (fc == 1) s="PublicKey"
-                else if (fc == 2) s="MessageKey"
-                else if (fc == 3) s="SigningPubKey"
-                else if (fc == 4) s="TxnSignature"
-                else if (fc == 5) s="URI"
-                else if (fc == 6) s="Signature"
-                else if (fc == 7) s="Domain"
-                else if (fc == 8) s="FundCode"
-                else if (fc == 9) s="RemoveCode"
-                else if (fc == 10) s="ExpireCode"
-                else if (fc == 11) s="CreateCode"
-                else if (fc == 12) s="MemoType"
-                else if (fc == 13) s="MemoData"
-                else if (fc == 14) s="MemoFormat"
-                else if (fc == 16) s="Fulfillment"
-                else if (fc == 17) s="Condition"
-                else if (fc == 18) s="MasterSignature"
-                else if (fc == 19) s="UNLModifyValidator"
-                else if (fc == 20) s="ValidatorToDisable"
-                else if (fc == 21) s="ValidatorToReEnable"
-                else if (fc == 22) s="HookStateData"
-                else if (fc == 23) s="HookReturnString"
-                else if (fc == 24) s="HookParameterName"
-                else if (fc == 25) s="HookParameterValue"
-                else unknown_detected = true
-            } else if ( t == 8 ) { // ACCOUNT
-                if (fc == 1) s="Account"
-                else if (fc == 2) s="Owner"
-                else if (fc == 3) s="Destination"
-                else if (fc == 4) s="Issuer"
-                else if (fc == 5) s="Authorize"
-                else if (fc == 6) s="Unauthorize"
-                else if (fc == 7) s="Target"
-                else if (fc == 8) s="RegularKey"
-                else if (fc == 9) s="Minter"
-                else if (fc == 10) s="EmitCallback"
-                else if (fc == 16) s="HookAccount"
-                else unknown_detected = true
-            } else if ( t == 19 ) { //STI_VECTOR256
-                if (fc == 1) s="Indexes"
-                else if (fc == 2) s="Hashes"
-                else if (fc == 3) s="Amendments"
-                else if (fc == 4) s="TokenOffers"
-                else unknown_detected = true
-            } else if ( t == 14 ) { /*STI_OBJECT*/
-                if (fc == 1) s="End of Object"
-                else if (fc == 2) s="TransactionMetaData"
-                else if (fc == 3) s="CreatedNode"
-                else if (fc == 4) s="DeletedNode"
-                else if (fc == 5) s="ModifiedNode"
-                else if (fc == 6) s="PreviousFields"
-                else if (fc == 7) s="FinalFields"
-                else if (fc == 8) s="NewFields"
-                else if (fc == 9) s="TemplateEntry"
-                else if (fc == 10) s="Memo"
-                else if (fc == 11) s="SignerEntry"
-                else if (fc == 12) s="NonFungibleToken"
-                else if (fc == 13) s="EmitDetails"
-                else if (fc == 14) s="Hook"
-                else if (fc == 16) s="Signer"
-                else if (fc == 18) s="Majority"
-                else if (fc == 19) s="DisabledValidator"
-                else if (fc == 20) s="EmittedTxn"
-                else if (fc == 21) s="HookExecution"
-                else if (fc == 22) s="HookDefinition"
-                else if (fc == 23) s="HookParameter"
-                else if (fc == 24) s="HookGrant"
-                else unknown_detected = true
-            } else if ( t == 15 ) { /*STI_ARRAY*/
-                    if (fc == 1) s="End of Array"
-                else if (fc == 3) s="Signers"
-                else if (fc == 4) s="SignerEntries"
-                else if (fc == 5) s="Template"
-                else if (fc == 6) s="Necessary"
-                else if (fc == 7) s="Sufficient"
-                else if (fc == 8) s="AffectedNodes"
-                else if (fc == 9) s="Memos"
-                else if (fc == 10) s="NonFungibleTokens"
-                else if (fc == 11) s="Hooks"
-                else if (fc == 16) s="Majorities"
-                else if (fc == 17) s="DisabledValidators"
-                else if (fc == 18) s="HookExecutions"
-                else if (fc == 19) s="HookParameters"
-                else if (fc == 20) s="HookGrants"
-                else unknown_detected = true
-            } else if ( t == 17 ) { //STI_HASH160
-                if (fc == 1) s="TakerPaysCurrency"
-                else if (fc == 2) s="TakerPaysIssuer"
-                else if (fc == 3) s="TakerGetsCurrency"
-                else if (fc == 4) s="TakerGetsIssuer"
-                else unknown_detected = true
-            } else if ( t == 18 ) { //STI_PATHSET
-                if (fc == 1) s="Paths"
-                else unknown_detected = true
-            } else if ( t == 10001 ) { //STI_TRANSACTION
-                if (fc == 257) s="Transaction"
-                else unknown_detected = true
-            } else if ( t == 10002 ) { //STI_LEDGERENTRY
-                if (fc == 257) s="LedgerEntry"
-                else unknown_detected = true
-            } else if ( t == 10003 ) { //STI_VALIDATION
-                if (fc == 257) s="Validation"
-                else unknown_detected = true
-            } else if ( t == 10004 ) { //STI_METADATA
-                if (fc == 257) s="Metadata"
-                else unknown_detected = true
-            }
+
+            if ((t in type_lookup) && (fc in type_lookup[t]))
+                s = type_lookup[t][fc].name;
+            else
+                unknown_detected = true;
+
             out.innerHTML += "<br/><div style='margin-left: "+indent_level+"em' class='field'><div class='fieldtext left'><b>" + s +
                 "</b></div><div class='fieldhex right'>" + h + "</div></div>"
         }
@@ -603,6 +398,9 @@ div#errormsg {
         }
 
         function run(depth, dontclearstack) {
+            if (!defs)
+                return ugly("No definitions loaded. Try attach ?def.json to the url");
+
             if (!dontclearstack) parse_stack = []
 
 
