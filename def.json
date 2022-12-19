@@ -52,7 +52,7 @@
     "Hook": 72,
     "HookState": 118,
     "HookDefinition": 68,
-    "Emitted": 69
+    "EmittedTxn": 69
   },
   "FIELDS": [
     [
@@ -323,6 +323,16 @@
         "isSerialized": true,
         "isSigningField": true,
         "type": "UInt16"
+      }
+    ],
+    [
+      "NetworkID",
+      {
+        "nth": 1,
+        "isVLEncoded": false,
+        "isSerialized": true,
+        "isSigningField": true,
+        "type": "UInt32"
       }
     ],
     [
@@ -1716,6 +1726,16 @@
       }
     ],
     [
+      "Blob",
+      {
+        "nth": 26,
+        "isVLEncoded": true,
+        "isSerialized": true,
+        "isSigningField": true,
+        "type": "Blob"
+      }
+    ],
+    [
       "Account",
       {
         "nth": 1,
@@ -2240,6 +2260,9 @@
     "telCAN_NOT_QUEUE_BLOCKED": -389,
     "telCAN_NOT_QUEUE_FEE": -388,
     "telCAN_NOT_QUEUE_FULL": -387,
+    "telWRONG_NETWORK": -386,
+    "telREQUIRES_NETWORK_ID": -385,
+    "telNETWORK_ID_MAKES_TX_NON_CANONICAL": -384,
 
     "temMALFORMED": -299,
     "temBAD_AMOUNT": -298,
@@ -2400,6 +2423,7 @@
     "NFTokenCreateOffer": 27,
     "NFTokenCancelOffer": 28,
     "NFTokenAcceptOffer": 29,
+    "Invoke": 99,
     "EnableAmendment": 100,
     "SetFee": 101,
     "UNLModify": 102,
