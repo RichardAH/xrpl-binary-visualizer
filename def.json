@@ -21,6 +21,8 @@
     "UInt192": 21,
     "UInt384": 22,
     "UInt512": 23,
+    "Issue": 24,
+    "XChainBridge": 25,
     "Transaction": 10001,
     "LedgerEntry": 10002,
     "Validation": 10003,
@@ -2244,6 +2246,36 @@
         "isSigningField": true,
         "type": "STArray"
       }
+    ],
+    [
+       "LockingChainIssue",
+       {
+           "nth": 1,
+           "isVLEncoded": false,
+           "isSerialized": true,
+           "isSigningField": true,
+           "type":"STIssue"
+       }
+    ],
+    [
+       "IssuingChainIssue",
+       {
+           "nth": 2,
+           "isVLEncoded": false,
+           "isSerialized": true,
+           "isSigningField": true,
+           "type":"Issue"
+       }
+    ],
+    [
+       "XChainBridge",
+       {
+           "nth": 1,
+           "isVLEncoded": false,
+           "isSerialized": true,
+           "isSigningField": true,
+           "type":"XChainBridge"
+       }
     ]
   ],
   "TRANSACTION_RESULTS": {
