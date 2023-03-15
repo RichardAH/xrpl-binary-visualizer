@@ -785,6 +785,140 @@ div#errormsg {
                     state = 5; // type and field read
                 }
 
+                if (state == 240)
+                {
+                    hexaccum += inp[i]
+                    if (--to_accumulate == 0)
+                    {
+                        print_payload("", "", hexaccum, "currency", out);
+                        if (hexaccum != "0".repeat(40))
+                        {
+                            state = 241;
+                            hexaccum = "";
+                            to_accumulate = 42;
+                            continue;
+                        }
+                        state = 0;
+                    }
+                    continue;
+                }
+
+                if (state == 241)
+                {
+                    hexaccum += inp[i]
+                    if (--to_accumulate == 0)
+                    {
+                        print_payload("", "", hexaccum, "issuer", out);
+                        hexaccum = "";
+                        state = 0;
+                    }
+                    continue;
+                }
+
+                if (state == 250)
+                {
+                    // account
+                    hexaccum += inp[i]
+                    if (--to_accumulate == 0)
+                    {
+                        print_payload("", "", hexaccum, "locking chain door", out);
+                        hexaccum = "";
+                        state = 251;
+                        to_accumulate = 40;
+                    }
+                    continue;
+                }
+                
+                if (state == 251)
+                {
+                    // currency
+                    hexaccum += inp[i]
+                    if (--to_accumulate == 0)
+                    {
+                        print_payload("", "", hexaccum, "locking chain currency", out);
+                        if (hexaccum != "0".repeat(40))
+                        {
+                            // we need to read a currency-issuer first
+                            state = 252;
+                            hexaccum = "";
+                            to_accumulate = 42;
+                            continue;
+                        }
+                        else
+                        {
+                            // skip to issuing chain door
+                            state = 253;
+                            hexaccum = "";
+                            to_accumulate = 42;
+                            continue;
+                        }
+                        state = 0;
+                    }
+                    continue;
+                }
+
+                if (state == 252)
+                {
+                    // account
+                    hexaccum += inp[i]
+                    if (--to_accumulate == 0)
+                    {
+                        print_payload("", "", hexaccum, "locking chain issuer", out);
+                        hexaccum = "";
+                        to_accumulate = 42;
+                        state = 253;
+                    }
+                    continue;
+                }
+                
+                if (state == 253)
+                {
+                    // account
+                    hexaccum += inp[i]
+                    if (--to_accumulate == 0)
+                    {
+                        print_payload("", "", hexaccum, "issuing chain door", out);
+                        hexaccum = "";
+                        state = 254;
+                        to_accumulate = 40;
+                    }
+                    continue;
+                }
+                
+                if (state == 254)
+                {
+                    // currnecy
+                    hexaccum += inp[i]
+                    if (--to_accumulate == 0)
+                    {
+                        print_payload("", "", hexaccum, "issuing chain currency", out);
+                        if (hexaccum != "0".repeat(40))
+                        {
+                            // we need to read a currency-issuer first
+                            hexaccum = "";
+                            state = 255;
+                            to_accumulate = 42;
+                            continue;
+                        }
+                        state = 0;
+                    }
+                    continue;
+                }
+
+                if (state == 255)
+                {
+                    // account
+                    hexaccum += inp[i]
+                    if (--to_accumulate == 0)
+                    {
+                        print_payload("", "", hexaccum, "issuing chain issuer", out);
+                        hexaccum = "";
+                        state = 0;
+                    }
+                    continue;
+                }
+
+
                 if (state == 5) {
 
                     // now we process VL if any and print the field contents
@@ -798,6 +932,16 @@ div#errormsg {
                     else if (st_type == 6) {
                         to_accumulate = -1 /* special value because we need the next byte to know how big 16 or 96 */
                         amount_type = -1
+                    }
+                    else if (st_type == 24) {
+                        to_accumulate = 40;
+                        state = 240
+                        continue
+                    }
+                    else if (st_type == 25) {
+                        to_accumulate = 42;
+                        state = 250
+                        continue
                     }
                     else if (st_type == 7) {
                         state = 70
@@ -857,24 +1001,24 @@ div#errormsg {
                         state = 0
                         continue
                     }
-                    hex_accum = ""
+                    hexaccum = ""
                     state = 191
                     vec_counter = 0
                 }
 
                 if (state == 191)
                 {
-                    if (to_accumulate % 64 == 0 && hex_accum != "")
+                    if (to_accumulate % 64 == 0 && hexaccum != "")
                     {
-                        print_payload("", "", hex_accum, "hash " + (vec_counter++), out);
-                        hex_accum = ""
+                        print_payload("", "", hexaccum, "hash " + (vec_counter++), out);
+                        hexaccum = ""
                     }
                     to_accumulate--;
-                    hex_accum += inp[i]
+                    hexaccum += inp[i]
                     if (to_accumulate <= 0)
                     {
-                        print_payload("", "", hex_accum, "hash " + (vec_counter++), out);
-                        hex_accum = ""
+                        print_payload("", "", hexaccum, "hash " + (vec_counter++), out);
+                        hexaccum = ""
                         vec_counter = 0
                         state = 0
                         continue
@@ -887,7 +1031,7 @@ div#errormsg {
                 {   // pathset accountid or currency or issuer
                     console.log("182: " + to_accumulate)
                     to_accumulate--;
-                    hex_accum += inp[i];
+                    hexaccum += inp[i];
                     if (to_accumulate <= 0)
                         state = (flags == 0 ? 184 : 183 ); // fallthru
                     else
@@ -898,17 +1042,17 @@ div#errormsg {
                 {   // display parsed field
                     if (flags & 0x01)
                     {
-                        print_payload("", "", hex_accum, "account", out);
+                        print_payload("", "", hexaccum, "account", out);
                         flags -= 0x01;
                     }
                     else if (flags & 0x10)
                     {
-                        print_payload("", "", hex_accum, "currency", out);
+                        print_payload("", "", hexaccum, "currency", out);
                         flags -= 0x10;
                     }
                     else if (flags & 0x20)
                     {
-                        print_payload("", "", hex_accum, "issuer", out);
+                        print_payload("", "", hexaccum, "issuer", out);
                         flags -= 0x20;
                     }
 
@@ -916,7 +1060,7 @@ div#errormsg {
                     {
                         state = 182;
                         to_accumulate = 40;
-                        hex_accum = "";
+                        hexaccum = "";
                         continue;
                     }
 
@@ -993,7 +1137,7 @@ div#errormsg {
 
                     indent_level += 2;
 
-                    hex_accum = "";
+                    hexaccum = "";
                     to_accumulate = 40;
                     state = 182;
                     continue;
