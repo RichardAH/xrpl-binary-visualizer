@@ -11,6 +11,7 @@
     "Amount": 6,
     "Blob": 7,
     "AccountID": 8,
+    "Nop": 9,
     "STObject": 14,
     "STArray": 15,
     "UInt8": 16,
@@ -2276,6 +2277,16 @@
            "isSigningField": true,
            "type":"XChainBridge"
        }
+    ],
+    [
+        "Nop",
+        {
+            "nth": 9,
+            "isVLEncoded": false,
+            "isSerialized": true,
+            "isSigningField": true,
+            "type":"Nop"
+        }
     ]
   ],
   "TRANSACTION_RESULTS": {

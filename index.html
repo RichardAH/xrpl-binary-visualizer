@@ -924,6 +924,14 @@ div#errormsg {
                     // now we process VL if any and print the field contents
                     hexaccum = ""
 
+                    // pass nops
+                    if (st_type == 9)
+                    {
+                        to_accumulate = 0
+                        state = 0
+                        continue
+                    }
+
                     if (st_type == 1) to_accumulate = 4
                     else if (st_type == 2) to_accumulate = 8
                     else if (st_type == 3) to_accumulate = 16
