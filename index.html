@@ -684,6 +684,45 @@ div#errormsg {
                     continue
                 }
 
+                if (state == -4)
+                {
+                    // check if its another nop (type)
+                    if (nibble == 9)
+                    {
+                        hexaccum += nibble;
+                        state = -3
+                        continue
+                    }
+                    else
+                    {
+                        if (hexaccum != "")
+                        {
+                            print_payload("", "", hexaccum, "", out);
+                            hexaccum = "";
+                        }
+                        state = 0; // fall through
+                    }
+                }
+
+                if (state == -3)
+                {
+                    hexaccum += nibble
+                    if (nibble == 0)
+                    {
+                        // field uncommon
+                        state = -2
+                        continue
+                    }
+                    state = -4
+                    continue
+                }
+
+                if (state == -2)
+                {
+                    hexaccum += nibble
+                    state = -4
+                    continue
+                }
 
                 if (state == 0) { // parsing type
                     if (nibble == 0) {
@@ -707,6 +746,14 @@ div#errormsg {
 
                     st_field = nibble
                     print_field(st_type, nibble, inp[i], out)
+                    if (st_type == 9)
+                    {
+                        // nop
+                        hexaccum = ""
+                        state = -4
+                        continue
+                    }
+
                     state = 5 // state 5 is a fallthrough state so do not continue
                 }
 
@@ -923,14 +970,6 @@ div#errormsg {
 
                     // now we process VL if any and print the field contents
                     hexaccum = ""
-
-                    // pass nops
-                    if (st_type == 9)
-                    {
-                        to_accumulate = 0
-                        state = 0
-                        continue
-                    }
 
                     if (st_type == 1) to_accumulate = 4
                     else if (st_type == 2) to_accumulate = 8
