@@ -1212,7 +1212,7 @@ div#errormsg {
                 return ugly("Parser did not complete cleanly" + indent_info +
                 (unknown_detected ? " and unknown fields were detected" : "" ) + " ...<br/>by the way this " +
                     (inp[0] == 'E' && inp[1] == 'D' && len == 66 ?
-                    " is definitely a public key not an STObject" :
+                    "is definitely a public key not an STObject" :
                     ( len == 66 ? "might be a public key." :
                     ( len == 40 ? "might be an AccountID.": "might be a hash." ))))
             if (unknown_detected)
