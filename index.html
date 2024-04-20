@@ -574,7 +574,7 @@ div#errormsg {
                                 out, undefined,
                                 '<span style="color:blue;">Bit </span>1 <small style="color:orange;">(Not XRP Bit)</small> ' +
                                     (bits & 1) + ' <small style="color:orange;">(' + ((bits & 1) ? 'Sign Bit + Positive' : 'Sign Bit - Negative') + ')</small> ' +
-                                    exponent + ' <small style="color:orange;">(Exponent Raw: ' + exponent_num + ', Adujusted: '+(exponent_num-97)+')</small> ' +
+                                    exponent + ' <small style="color:orange;">(Exponent Raw: ' + exponent_num + ', Adjusted: '+(exponent_num-97)+')</small> ' +
                                 (firstthree & 0x2) + (firstthree & 0x1) + ' <small style="color:orange;">(First two bits of mantissa)</small>');
                             mantissa_carry = (firstthree & 0x3) << 52;
 
